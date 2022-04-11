@@ -21,18 +21,17 @@ class sftpClient:
     def listAllDirectory(self):
         ftp = self.ssh.open_sftp()
         for i in ftp.listdir():
-           lstatout = str(ftp.lstat(i)).split()[0]
-           if 'd' in lstatout:
-               print(i, 'is a directory')
-           elif 'd' not in lstatout:
-               print(i, 'is a file')
+            lstatout = str(ftp.lstat(i)).split()[0]
+            if 'd' in lstatout:
+                print(i, 'is a directory')
+            elif 'd' not in lstatout:
+                print(i, 'is a file')
         for entry in ftp.listdir_attr():
             mode = entry.st_mode
             if S_ISDIR(mode):
                 print(entry.filename + " is folder")
             elif S_ISREG(mode):
                 print(entry.filename + " is file")
-
 
     @staticmethod
     def stringpath(path):
@@ -42,11 +41,11 @@ class sftpClient:
     def tree_sftp(self, path='.', parent='/', prefix=''):
         ftp = self.ssh.open_sftp()
         # prefix components:
-        space =  '    '
+        space = '    '
         branch = '│   '
         # pointers:
-        tee =    '├── '
-        last =   '└── '
+        tee = '├── '
+        last = '└── '
 
         """
         Loop through files to print it out
