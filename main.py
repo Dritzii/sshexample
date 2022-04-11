@@ -1,3 +1,5 @@
+import os
+
 import paramiko
 from pathlib import Path
 from stat import S_ISDIR, S_ISREG
@@ -13,6 +15,9 @@ class sftpClient:
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.connect(hostname=self.host, port=self.port, username=self.username, password=self.password)
 
+    def sftpReturn(self):
+        return self.ssh.open_sftp()
+
     def getFilestoLocalMachine(self, locationRemote, locationLocal):
         ftp_client = self.ssh.open_sftp()
         ftp_client.get(locationRemote, locationLocal)
@@ -21,17 +26,25 @@ class sftpClient:
     def listAllDirectory(self):
         ftp = self.ssh.open_sftp()
         for i in ftp.listdir():
-            lstatout = str(ftp.lstat(i)).split()[0]
-            if 'd' in lstatout:
-                print(i, 'is a directory')
-            elif 'd' not in lstatout:
-                print(i, 'is a file')
+           lstatout = str(ftp.lstat(i)).split()[0]
+           if 'd' in lstatout:
+               print(i, 'is a directory')
+           elif 'd' not in lstatout:
+               print(i, 'is a file')
         for entry in ftp.listdir_attr():
             mode = entry.st_mode
             if S_ISDIR(mode):
                 print(entry.filename + " is folder")
             elif S_ISREG(mode):
                 print(entry.filename + " is file")
+
+    def getFullPath(self):
+        ftp = self.ssh.open_sftp()
+        path = "country"
+        for filename in ftp.listdir(path):
+            fullpath = path + "/" + filename
+            print(fullpath)
+
 
     @staticmethod
     def stringpath(path):
@@ -41,11 +54,11 @@ class sftpClient:
     def tree_sftp(self, path='.', parent='/', prefix=''):
         ftp = self.ssh.open_sftp()
         # prefix components:
-        space = '    '
+        space =  '    '
         branch = '│   '
         # pointers:
-        tee = '├── '
-        last = '└── '
+        tee =    '├── '
+        last =   '└── '
 
         """
         Loop through files to print it out
@@ -59,9 +72,8 @@ class sftpClient:
         pointers = [tee] * (len(dirs) - 1) + [last]
         pdirs = [Path(fullpath, d.filename) for d in dirs]
         sdirs = [str(path) for path in pdirs]
-
         for pointer, sd, d in zip(pointers, sdirs, dirs):
             yield prefix + pointer + d.filename
             if S_ISDIR(d.st_mode):
                 extension = branch if pointer == tee else space
-                yield from self.tree_sftp(ftp, sd, prefix=prefix + extension)
+                yield from self.tree_sftp(sd, prefix=prefix + extension)
