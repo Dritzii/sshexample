@@ -64,4 +64,4 @@ class sftpClient:
             yield prefix + pointer + d.filename
             if S_ISDIR(d.st_mode):
                 extension = branch if pointer == tee else space
-                yield from tree_sftp(ftp, sd, prefix=prefix + extension)
+                yield from self.tree_sftp(ftp, sd, prefix=prefix + extension)
